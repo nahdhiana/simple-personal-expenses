@@ -1,3 +1,7 @@
+// ignore_for_file: unused_field
+//convention to import dart lib first, then flutter, then your custom widget
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './widgets/chart.dart';
 import './widgets/new_transaction.dart';
@@ -5,6 +9,14 @@ import './widgets/transaction_list.dart';
 import '../models/transaction.dart';
 
 void main(List<String> args) {
+  //only accept portrait orientation
+  // WidgetsFlutterBinding.ensureInitialized();
+  // SystemChrome.setPreferredOrientations(
+  //   [
+  //     DeviceOrientation.portraitUp,
+  //     DeviceOrientation.portraitDown,
+  //   ],
+  // ).then((_) {
   runApp(
     MaterialApp(
       //name of app from task manager dsb
@@ -34,6 +46,7 @@ void main(List<String> args) {
       home: const MyApp(),
     ),
   );
+  // });
 }
 
 class MyApp extends StatefulWidget {
@@ -64,6 +77,8 @@ class _MyAppState extends State<MyApp> {
       date: DateTime.now(),
     ),
   ];
+
+  bool _showChart = false;
 
   void _addNewTransaction(String title, double amount, DateTime choosenDate) {
     final _transaction = Transaction(
@@ -102,34 +117,115 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Personal Expenses'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () => _showAddTransactionForm(),
-            icon: const Icon(Icons.add),
-          ),
-        ],
-      ),
-      //make floating action button floating in buttom center of the screen
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddTransactionForm(),
-        child: const Icon(
-          Icons.add,
-        ),
-      ),
-      body: SingleChildScrollView(
+    final _mediaQuery = MediaQuery.of(context);
+
+    final _isLandscape = _mediaQuery.orientation == Orientation.landscape;
+
+    //split appbar into new variable to calculate responsiveness
+    final _appBar = Platform.isIOS
+        ? CupertinoNavigationBar(
+            middle: const Text('Personal Expenses'),
+            trailing: Row(
+              //row take as much screensize available, so with mainAxisSize.min it will be the constraints
+              //the default value is max, so change it to min to take space as small as needed
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // make custom button cz ios didn't have icon button
+                GestureDetector(
+                  child: const Icon(CupertinoIcons.add),
+                  onTap: () => _showAddTransactionForm(),
+                ),
+              ],
+            ),
+          )
+        : AppBar(
+            title: const Text('Personal Expenses'),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                onPressed: () => _showAddTransactionForm(),
+                icon: const Icon(Icons.add),
+              ),
+            ],
+            //to handling error preferred size
+          ) as PreferredSizeWidget;
+
+    final _transactionList = SizedBox(
+      height: (_mediaQuery.size.height -
+              _appBar.preferredSize.height -
+              _mediaQuery.padding.top) *
+          0.7,
+      child: Transactionlist(_userTransactions, _deleteTransaction),
+    );
+
+    final _body = SafeArea(
+      child: SingleChildScrollView(
         //make scrollable
         child: Column(
           children: [
-            WeeklyChart(_recentTransactions),
-            Transactionlist(_userTransactions, _deleteTransaction),
+            //if orientation is landscape
+            if (_isLandscape)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Show Chart',
+                    style: Theme.of(context).textTheme.bodyText1,
+                  ),
+                  // .adaptive some widget have this, so it can automatically change
+                  //based on platform (ios/android)
+                  Switch.adaptive(
+                      value: _showChart,
+                      onChanged: (value) {
+                        setState(() {
+                          _showChart = value;
+                        });
+                      }),
+                ],
+              ),
+            if (!_isLandscape)
+              SizedBox(
+                //occupy 40% of screensize - (minus) for appbar and topbar
+                //mediaquery....padding.top is space for topbar
+                height: (_mediaQuery.size.height -
+                        _appBar.preferredSize.height -
+                        _mediaQuery.padding.top) *
+                    0.3,
+                child: WeeklyChart(_recentTransactions),
+              ),
+            if (!_isLandscape) _transactionList,
+
+            if (_isLandscape)
+              _showChart
+                  ? SizedBox(
+                      //occupy 40% of screensize - (minus) for appbar and topbar
+                      //mediaquery....padding.top is space for topbar
+                      height: (_mediaQuery.size.height -
+                              _appBar.preferredSize.height -
+                              _mediaQuery.padding.top) *
+                          0.6,
+                      child: WeeklyChart(_recentTransactions),
+                    )
+                  : _transactionList
           ],
         ),
       ),
+    );
+    return Scaffold(
+      appBar: _appBar,
+      //make floating action button floating in buttom center of the screen
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton:
+          //check is platform is IOS, hide the floating action button, cz ios didn't have it
+          Platform.isIOS
+              ? const SizedBox()
+              : FloatingActionButton(
+                  onPressed: () => _showAddTransactionForm(),
+                  child: const Icon(
+                    Icons.add,
+                  ),
+                ),
+      body: _body,
     );
   }
 }
