@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:personal_expenses/widgets/adaptive_text_button.dart';
+import '../widgets/adaptive_text_button.dart';
 
 //statefull so the textfield not empty when filling data form in title to amount etc
 class NewTransaction extends StatefulWidget {
