@@ -113,6 +113,36 @@ List<Widget> _buildPortraitContent(
   ];
 }
 
+Widget _buildAppBar(showAddTransactionForm) {
+  return Platform.isIOS
+      ? CupertinoNavigationBar(
+          middle: const Text('Personal Expenses'),
+          trailing: Row(
+            //row take as much screensize available, so with mainAxisSize.min it will be the constraints
+            //the default value is max, so change it to min to take space as small as needed
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // make custom button cz ios didn't have icon button
+              GestureDetector(
+                child: const Icon(CupertinoIcons.add),
+                onTap: () => showAddTransactionForm,
+              ),
+            ],
+          ),
+        )
+      : AppBar(
+          title: const Text('Personal Expenses'),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              onPressed: () => showAddTransactionForm,
+              icon: const Icon(Icons.add),
+            ),
+          ],
+          //to handling error preferred size
+        );
+}
+
 class _MyAppState extends State<MyApp> {
   final List _userTransactions = [
     Transaction(
@@ -178,34 +208,8 @@ class _MyAppState extends State<MyApp> {
 
     final _isLandscape = _mediaQuery.orientation == Orientation.landscape;
 
-    //split appbar into new variable to calculate responsiveness
-    final _appBar = Platform.isIOS
-        ? CupertinoNavigationBar(
-            middle: const Text('Personal Expenses'),
-            trailing: Row(
-              //row take as much screensize available, so with mainAxisSize.min it will be the constraints
-              //the default value is max, so change it to min to take space as small as needed
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // make custom button cz ios didn't have icon button
-                GestureDetector(
-                  child: const Icon(CupertinoIcons.add),
-                  onTap: () => _showAddTransactionForm(),
-                ),
-              ],
-            ),
-          )
-        : AppBar(
-            title: const Text('Personal Expenses'),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                onPressed: () => _showAddTransactionForm(),
-                icon: const Icon(Icons.add),
-              ),
-            ],
-            //to handling error preferred size
-          ) as PreferredSizeWidget;
+    //split appbar into widget then insert into new variable to calculate responsiveness
+    final _appBar = _buildAppBar(_showAddTransactionForm) as PreferredSize;
 
     final _transactionList = SizedBox(
       height: (_mediaQuery.size.height -
@@ -248,6 +252,7 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
+
     return Scaffold(
       appBar: _appBar,
       //make floating action button floating in buttom center of the screen
