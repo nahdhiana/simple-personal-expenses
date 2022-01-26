@@ -56,6 +56,63 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
+List<Widget> _buildLandscapeContent(
+    {required mediaQuery,
+    required context,
+    required showChart,
+    required appBar,
+    required recentTransactions,
+    required transactionList,
+    required onChanged}) {
+  return [
+    Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Show Chart',
+          style: Theme.of(context).textTheme.bodyText1,
+        ),
+        // .adaptive some widget have this, so it can automatically change
+        //based on platform (ios/android)
+        Switch.adaptive(
+          value: showChart,
+          onChanged: onChanged,
+        ),
+      ],
+    ),
+    showChart
+        ? SizedBox(
+            //occupy 40% of screensize - (minus) for appbar and topbar
+            //mediaquery....padding.top is space for topbar
+            height: (mediaQuery.size.height -
+                    appBar.preferredSize.height -
+                    mediaQuery.padding.top) *
+                0.6,
+            child: WeeklyChart(recentTransactions),
+          )
+        : transactionList
+  ];
+}
+
+List<Widget> _buildPortraitContent(
+    {required mediaQuery,
+    required appBar,
+    required recentTransactions,
+    required transactionList}) {
+  return [
+    SizedBox(
+      //occupy 40% of screensize - (minus) for appbar and topbar
+      //mediaquery....padding.top is space for topbar
+      height: (mediaQuery.size.height -
+              appBar.preferredSize.height -
+              mediaQuery.padding.top) *
+          0.3,
+      child: WeeklyChart(recentTransactions),
+    ),
+    transactionList,
+  ];
+}
+
 class _MyAppState extends State<MyApp> {
   final List _userTransactions = [
     Transaction(
@@ -165,48 +222,28 @@ class _MyAppState extends State<MyApp> {
           children: [
             //if orientation is landscape
             if (_isLandscape)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Show Chart',
-                    style: Theme.of(context).textTheme.bodyText1,
-                  ),
-                  // .adaptive some widget have this, so it can automatically change
-                  //based on platform (ios/android)
-                  Switch.adaptive(
-                      value: _showChart,
-                      onChanged: (value) {
-                        setState(() {
-                          _showChart = value;
-                        });
-                      }),
-                ],
-              ),
+              // ...spread operator, cz _buildPortrait return list of widgets, but here need a widget.
+              ..._buildLandscapeContent(
+                  appBar: _appBar,
+                  context: context,
+                  mediaQuery: _mediaQuery,
+                  recentTransactions: _recentTransactions,
+                  showChart: _showChart,
+                  transactionList: _transactionList,
+                  onChanged: (value) {
+                    setState(() {
+                      _showChart = value;
+                    });
+                  }),
+            //if orientations is portrait
             if (!_isLandscape)
-              SizedBox(
-                //occupy 40% of screensize - (minus) for appbar and topbar
-                //mediaquery....padding.top is space for topbar
-                height: (_mediaQuery.size.height -
-                        _appBar.preferredSize.height -
-                        _mediaQuery.padding.top) *
-                    0.3,
-                child: WeeklyChart(_recentTransactions),
+              // ...spread operator, cz _buildPortrait return list of widgets, but here need a widget.
+              ..._buildPortraitContent(
+                mediaQuery: _mediaQuery,
+                appBar: _appBar,
+                recentTransactions: _recentTransactions,
+                transactionList: _transactionList,
               ),
-            if (!_isLandscape) _transactionList,
-
-            if (_isLandscape)
-              _showChart
-                  ? SizedBox(
-                      //occupy 40% of screensize - (minus) for appbar and topbar
-                      //mediaquery....padding.top is space for topbar
-                      height: (_mediaQuery.size.height -
-                              _appBar.preferredSize.height -
-                              _mediaQuery.padding.top) *
-                          0.6,
-                      child: WeeklyChart(_recentTransactions),
-                    )
-                  : _transactionList
           ],
         ),
       ),
