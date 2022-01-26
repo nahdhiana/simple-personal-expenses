@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'transaction_item.dart';
 
 class Transactionlist extends StatelessWidget {
-  final List transactions;
+  final List _transactions;
   final Function _deleteTransaction;
-  const Transactionlist(this.transactions, this._deleteTransaction, {Key? key})
+  const Transactionlist(this._transactions, this._deleteTransaction, {Key? key})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return transactions.isEmpty
+    return _transactions.isEmpty
         ? LayoutBuilder(
             builder: (context, constraints) {
               return Column(
@@ -35,50 +35,9 @@ class Transactionlist extends StatelessWidget {
           )
         : ListView.builder(
             itemBuilder: (context, index) {
-              return Card(
-                margin: const EdgeInsets.symmetric(
-                  vertical: 6,
-                  horizontal: 5,
-                ),
-                elevation: 5,
-                child: ListTile(
-                  leading: CircleAvatar(
-                    radius: 30,
-                    child: Padding(
-                      padding: const EdgeInsets.all(6.0),
-                      child: FittedBox(
-                        child: Text(
-                            '\$ ${transactions[index].amount.toStringAsFixed(2)}'),
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    transactions[index].title,
-                    style: Theme.of(context).textTheme.bodyText1,
-                  ),
-                  subtitle: Text(
-                    DateFormat.yMMMEd().format(transactions[index].date),
-                  ),
-                  trailing: MediaQuery.of(context).size.width > 460
-                      ? TextButton.icon(
-                          onPressed: () =>
-                              _deleteTransaction(transactions[index].id),
-                          icon: const Icon(Icons.delete),
-                          label: const Text('Delete'),
-                          style: TextButton.styleFrom(
-                            primary: Theme.of(context).errorColor,
-                          ),
-                        )
-                      : IconButton(
-                          onPressed: () =>
-                              _deleteTransaction(transactions[index].id),
-                          icon: const Icon(
-                            Icons.delete,
-                          ),
-                          color: Theme.of(context).errorColor,
-                        ),
-                ),
-              );
+              return ListTransactionItem(
+                  transaction: _transactions[index],
+                  deleteTransaction: _deleteTransaction);
               // return Card(
               //   elevation: 5,
               //   child: Row(
@@ -136,7 +95,7 @@ class Transactionlist extends StatelessWidget {
               //   ),
               // );
             },
-            itemCount: transactions.length,
+            itemCount: _transactions.length,
           );
   }
 }
