@@ -113,7 +113,7 @@ List<Widget> _buildPortraitContent(
   ];
 }
 
-Widget _buildAppBar(showAddTransactionForm) {
+PreferredSizeWidget _buildAppBar(showAddTransactionForm) {
   return Platform.isIOS
       ? CupertinoNavigationBar(
           middle: const Text('Personal Expenses'),
@@ -125,7 +125,7 @@ Widget _buildAppBar(showAddTransactionForm) {
               // make custom button cz ios didn't have icon button
               GestureDetector(
                 child: const Icon(CupertinoIcons.add),
-                onTap: () => showAddTransactionForm,
+                onTap: () => showAddTransactionForm(),
               ),
             ],
           ),
@@ -135,12 +135,12 @@ Widget _buildAppBar(showAddTransactionForm) {
           centerTitle: true,
           actions: [
             IconButton(
-              onPressed: () => showAddTransactionForm,
+              onPressed: () => showAddTransactionForm(),
               icon: const Icon(Icons.add),
             ),
           ],
           //to handling error preferred size
-        );
+        ) as PreferredSizeWidget;
 }
 
 class _MyAppState extends State<MyApp> {
@@ -209,7 +209,7 @@ class _MyAppState extends State<MyApp> {
     final _isLandscape = _mediaQuery.orientation == Orientation.landscape;
 
     //split appbar into widget then insert into new variable to calculate responsiveness
-    final _appBar = _buildAppBar(_showAddTransactionForm) as PreferredSize;
+    final PreferredSizeWidget _appBar = _buildAppBar(_showAddTransactionForm);
 
     final _transactionList = SizedBox(
       height: (_mediaQuery.size.height -
